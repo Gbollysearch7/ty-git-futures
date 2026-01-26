@@ -184,91 +184,33 @@ const eodAccountSpecs = {
 };
 
 // ============================================
-// PRICING SELECTOR
+// PRICING TABS
 // ============================================
 function initPricingSelector() {
-    const typeCards = document.querySelectorAll('.type-card');
-    const staticSizes = document.getElementById('static-sizes');
-    const eodSizes = document.getElementById('eod-sizes');
+    const pricingTabs = document.querySelectorAll('.pricing-tab');
+    const staticGrid = document.getElementById('static-pricing-grid');
+    const eodGrid = document.getElementById('eod-pricing-grid');
 
-    let currentType = 'static';
-    let currentSize = 10000;
+    if (!pricingTabs.length || !staticGrid || !eodGrid) return;
 
-    // Type card click handler
-    typeCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const type = card.dataset.type;
+    pricingTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const type = tab.dataset.type;
 
-            // Update active type card
-            typeCards.forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
+            // Update active tab
+            pricingTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
 
-            // Show/hide size selectors
+            // Show/hide grids
             if (type === 'static') {
-                staticSizes.classList.remove('hidden');
-                eodSizes.classList.add('hidden');
-                currentType = 'static';
-                currentSize = 10000; // Reset to first size
+                staticGrid.classList.remove('hidden');
+                eodGrid.classList.add('hidden');
             } else {
-                staticSizes.classList.add('hidden');
-                eodSizes.classList.remove('hidden');
-                currentType = 'eod';
-                currentSize = 50000; // Reset to first EOD size
+                staticGrid.classList.add('hidden');
+                eodGrid.classList.remove('hidden');
             }
-
-            // Reset active pills
-            document.querySelectorAll('.size-pill').forEach(p => p.classList.remove('active'));
-            const activeSizeSelector = type === 'static' ? staticSizes : eodSizes;
-            activeSizeSelector.querySelector('.size-pill').classList.add('active');
-
-            updatePricingDisplay();
         });
     });
-
-    // Size pill click handlers
-    document.querySelectorAll('.size-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-            const size = parseInt(pill.dataset.size);
-            const parentSelector = pill.closest('.account-size-selector');
-
-            // Update active pill within the same selector
-            parentSelector.querySelectorAll('.size-pill').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-
-            currentSize = size;
-            updatePricingDisplay();
-        });
-    });
-
-    function updatePricingDisplay() {
-        const specs = currentType === 'static' ? staticAccountSpecs[currentSize] : eodAccountSpecs[currentSize];
-        const drawdownType = currentType === 'static' ? 'Static (from starting balance)' : 'EOD Trailing';
-
-        // Update account title
-        const titleEl = document.getElementById('selected-account-title');
-        titleEl.textContent = `${specs.balance} ${currentType === 'static' ? 'Static' : 'EOD'} Account`;
-
-        // Update price (ORIGINAL price, no promo)
-        const priceEl = document.getElementById('display-price');
-        priceEl.textContent = `$${specs.price}`;
-
-        // Update promo code
-        const promoEl = document.getElementById('promo-code-display');
-        promoEl.textContent = specs.promoCode;
-
-        // Update specs table
-        document.getElementById('spec-balance').textContent = specs.balance;
-        document.getElementById('spec-balance-funded').textContent = specs.balance;
-        document.getElementById('spec-target').textContent = specs.profitTarget;
-        document.getElementById('spec-maxloss').textContent = specs.maxLoss;
-        document.getElementById('spec-maxloss-funded').textContent = specs.maxLoss;
-        document.getElementById('spec-drawdown').textContent = drawdownType;
-        document.getElementById('spec-contracts').textContent = specs.contracts;
-        document.getElementById('spec-reset').textContent = specs.resetFee;
-    }
-
-    // Initialize display
-    updatePricingDisplay();
 }
 
 // ============================================
@@ -384,15 +326,37 @@ function initSmoothScroll() {
 // MOBILE MENU
 // ============================================
 function initMobileMenu() {
-    const menuBtn = document.querySelector('.mobile-menu-btn');
-    const navRight = document.querySelector('.nav-right');
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const mobileNav = document.getElementById('mobile-nav-menu');
+    const mobileDropdowns = document.querySelectorAll('.mobile-dropdown');
 
-    if (menuBtn) {
+    if (menuBtn && mobileNav) {
         menuBtn.addEventListener('click', () => {
-            navRight.classList.toggle('mobile-open');
             menuBtn.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            // Prevent body scroll when menu is open
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        });
+
+        // Close mobile menu when clicking a link
+        mobileNav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuBtn.classList.remove('active');
+                mobileNav.classList.remove('active');
+                document.body.style.overflow = '';
+            });
         });
     }
+
+    // Mobile dropdown toggles
+    mobileDropdowns.forEach(dropdown => {
+        const trigger = dropdown.querySelector('.mobile-dropdown-trigger');
+        if (trigger) {
+            trigger.addEventListener('click', () => {
+                dropdown.classList.toggle('active');
+            });
+        }
+    });
 }
 
 // ============================================
@@ -449,30 +413,6 @@ style.textContent = `
     .animate-in {
         opacity: 1 !important;
         transform: translateY(0) !important;
-    }
-
-    .nav-right.mobile-open {
-        display: flex !important;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        flex-direction: column;
-        background: var(--bg-primary);
-        padding: var(--spacing-lg);
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .mobile-menu-btn.active span:nth-child(1) {
-        transform: rotate(45deg) translate(5px, 5px);
-    }
-
-    .mobile-menu-btn.active span:nth-child(2) {
-        opacity: 0;
-    }
-
-    .mobile-menu-btn.active span:nth-child(3) {
-        transform: rotate(-45deg) translate(7px, -6px);
     }
 `;
 document.head.appendChild(style);
